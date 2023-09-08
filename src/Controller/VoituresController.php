@@ -8,6 +8,8 @@ use Symfony\Component\Routing\Annotation\Route;
 use App\Repository\VoitureRepository;
 use App\Entity\Voiture;
 use Doctrine\ORM\EntityManagerInterface;
+use App\Form\VoitureType;
+use Symfony\Component\HttpFoundation\Request;
 
 class VoituresController extends AbstractController
 {
@@ -30,6 +32,31 @@ class VoituresController extends AbstractController
 
         return $this->render('accueil.html.twig', [
             'voitures' => $voitures,
+        ]);
+    }
+
+    /**
+     * Création d'une voiture
+     */
+    #[Route('/voiture/ajouter', name: 'app_car_add')]
+    public function ajouterVoiture(Request $request): Response
+    {
+        $voiture = new Voiture();
+
+        $form = $this->createForm(VoitureType::class, $voiture);
+
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            $voiture = $form->getData();
+
+            $this->entityManager->persist($voiture);
+            $this->entityManager->flush();
+
+            return $this->redirectToRoute('app_car', ['id' => $voiture->getId()]);
+        }
+
+        return $this->render('nouvelle-voiture.html.twig', [
+            'form' => $form->createView(), // Sur Symfony 6.2 et plus, 'form' => $form suffit.
         ]);
     }
 
